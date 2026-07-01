@@ -64,12 +64,25 @@ class SiameseDataset(Dataset): # Inherit from the Dataset class, which is a base
         # returns the number of samples in the dataset. This is used by PyTorch to determine how many batches to create during training or evaluation.
         return self.num_samples
 
-    def _load_image(self, path): 
-        # helper function to load an image from a given path, convert it to grayscale, and apply any specified transformations. 
-        # This is used in the __getitem__ method to load the images for each pair.
-        img = Image.open(path).convert("L")  # grayscale is typical for handwriting
-        if self.transform: # if transform is not None, apply the transform to the image. 
-            img = self.transform(img) # calls the method and passes the image to it, which applies the transformations defined in the transform parameter (like resizing, normalization, etc.)
+    # def _load_image(self, path): 
+    #     # helper function to load an image from a given path, convert it to grayscale, and apply any specified transformations. 
+    #     # This is used in the __getitem__ method to load the images for each pair.
+    #     img = Image.open(path).convert("RGB")  # grayscale is typical for handwriting
+    #     if self.transform: # if transform is not None, apply the transform to the image. 
+    #         img = self.transform(img) # calls the method and passes the image to it, which applies the transformations defined in the transform parameter (like resizing, normalization, etc.)
+    #     return img
+    def _load_image(self, path):
+        img = Image.open(path)
+
+        print("Before convert:", img.mode)
+
+        img = img.convert("RGB")
+
+        print("After convert:", img.mode)
+
+        if self.transform:
+            img = self.transform(img)
+
         return img
 
     def __getitem__(self, idx): # This method is called by PyTorch when it needs to get a sample from the dataset. It takes an index (idx) as input, but in this case, the index is not used because pairs are generated dynamically.
@@ -133,7 +146,10 @@ from torch.utils.data import DataLoader
 your_transforms = transforms.Compose([
     transforms.Resize((224, 224)), # Resize all images
     transforms.ToTensor(), # Convert PIL Image to PyTorch Tensor
-    transforms.Normalize(mean=[0.5], std=[0.5]) # Normalize grayscale image, by subtracting the mean and dividing by the standard deviation. This helps the model learn better by ensuring that the input data has a consistent scale and distribution.
+    transforms.Normalize(
+    mean=[0.485, 0.456, 0.406],
+    std=[0.229, 0.224, 0.225]
+) # Normalize RGB image, by subtracting the mean and dividing by the standard deviation. This helps the model learn better by ensuring that the input data has a consistent scale and distribution.
 ])
 
 # Create the dataset
